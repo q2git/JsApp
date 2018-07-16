@@ -1,0 +1,6 @@
+flask
+flask_restless
+flask_sqlalchemy
+pywebview
+pyqt5
+pyinstaller

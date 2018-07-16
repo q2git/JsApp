@@ -2,8 +2,8 @@
 
 angular.module('myApp')
 
-	//.constant("baseURL","http://192.168.0.128:5000/") //moved to configs.js
-	//.constant("baseURL","http://127.0.0.1:5000/")
+	//.constant("baseURL","http://192.168.0.128:5000/") 
+	.constant("baseURL","http://127.0.0.1:5000/")
 
 	//myCtrl****************************************************	
 	.controller('myCtrl', ['$scope', '$interval', '$filter','mySvc', function($scope, $interval, $filter, mySvc) {  
@@ -15,7 +15,8 @@ angular.module('myApp')
 		$scope.dateTime = $filter('date')(Date.now(),'yyyy-MM-dd HH:mm:ss'); ;
 		$interval(function(){$scope.dateTime=$filter('date')(Date.now(),'yyyy-MM-dd HH:mm:ss');}
 					,1000); //refresh dateTime automatically
-		$scope.temp = 'for degbug' ;//for debug
+		$scope.ckbFlag = false; //for binding checkbox
+		var rowIdx; //table $index
 		
 		//database operation: Read
 		//http://127.0.0.1:5000/cn?q={"filters":[{"name":"field0","op":"eq","val":5}]}
@@ -62,10 +63,10 @@ angular.module('myApp')
 					$scope.formData,
 					function(response) {
 						console.log('POST, addNew');
-						$scope.dbItems.objects.splice(0, 0, response); //response is the new dbItem returned from server
+						//$scope.dbItems.objects.splice(0, 0, response); //response is the new dbItem returned from server
 						//$scope.dbItems.objects.push(response); 
 						console.log($scope.dbItems.objects);
-						//querydata();
+						$scope.formClean();
 					},
 					function(response) {
 						$scope.showData = false;
@@ -84,7 +85,7 @@ angular.module('myApp')
 					$scope.formData,
 					function(response) {
 						console.log('PUT, Modify');
-						//querydata();
+						$scope.formClean();
 					},
 					function(response) {
 						// console.log('POST, addnew');
@@ -98,14 +99,14 @@ angular.module('myApp')
 		};			
 		
 		//database operation: delete
-		$scope.del = function (item, idx) {
-			console.log(item, idx);
+		$scope.del = function () {
+			console.log($scope.formData.field0);
 			if (confirm("Are you sure to delete it?")){
-				mySvc.dbData('').remove({'kwd':item});
-				//mySvc.dbData('').delete({'kwd':item});
-				$scope.dbItems.objects.splice(idx, 1); //remove idx from array
-				$scope.formData = null; //clear formData
-				//querydata();
+				mySvc.dbData('').remove({'kwd':$scope.formData.field0});
+				//mySvc.dbData('').delete({'kwd':idx});
+				$scope.formData.field0 = null; //clear index filed0 of formData
+				$scope.dbItems.objects.splice(rowIdx, 1); //remove rowIdx from table
+				//querydata(); //no $promise, so refreshing may not reflect the change
 			};
 		};
 				
@@ -119,16 +120,29 @@ angular.module('myApp')
 			querydata(); //formClean will effect myTable, so refresh it.
 		};
 		
+		//update formData
+		$scope.updateForm = function(item, idx){
+			rowIdx = idx;
+			//$scope.formData = item; //not good, both will be affected
+			for (var k in item){
+				if (typeof item[k] !== 'function') {
+					$scope.formData[k] = item[k];
+				};
+			};
+			$scope.ckbFlag = $scope.formData.field5 == 'YES' ? true : false; //for binding checkbox
+			console.log(idx, item.field0);
+		};				
+		
 		//submit form
-		var submitForm = function (n) {
-			//var n;
-			//($scope.formData.field0==null) ? n=1 : n=2;	
+		var submitForm = function () {
+			var n;
+			($scope.formData.field0==null) ? n=1 : n=2;	
 			switch(n)
 			{
-				case 'AddNew':
+				case 1:
 					AddNew();
 					break;
-				case 'Modify':
+				case 2:
 					Modify();
 					break;
 				case 3:
@@ -152,17 +166,20 @@ angular.module('myApp')
 		querydata();
 		console.log($scope.formData);
 		
-		//sorting data by click
-		$scope.sortBy = function(key){
-			$scope.sortby = '+'+key;
-		};
-		
-		//update formData
-		$scope.updateForm = function(item){
-			$scope.formData = item
-			//console.log(item);
-		};				
-
+		//Semantic-UI codes*********************
+		$('.myCkb').checkbox({
+			onChange: function(){		
+				console.log('changed<br>');
+			},
+			onChecked: function() {
+				$scope.formData.field5 = 'YES' ;
+			    console.log('onChecked called<br>');
+			},
+			onUnchecked: function() {
+				$scope.formData.field5 = 'NO' ;
+			    console.log('onUnchecked called<br>');
+			}
+		});
 		//form validation -- Shorthand Validation
 /* 		$('.ui.form')
 		  .form({
@@ -185,12 +202,12 @@ angular.module('myApp')
 				  }
 				]
 			  },
-			  sexfs: {
-				identifier: 'sex',
+			  options: {
+				identifier: 'sel',
 				rules: [
 				  {
 					type   : 'empty',
-					prompt : 'Please select a gender'
+					prompt : 'Please select a option'
 				  }
 				]
 			  },
@@ -206,15 +223,6 @@ angular.module('myApp')
 					prompt : 'Your password must be at least {ruleValue} characters'
 				  }
 				]
-			  },
-			  checkbox: {
-				identifier: 'ckb',
-				rules: [
-				  {
-					type   : 'checked',
-					prompt : '{name} must be checked'
-				  }
-				]
 			  }
 			},
 			inline : true,  //This example also uses a different validation event. 
@@ -222,10 +230,12 @@ angular.module('myApp')
 			
 			onSuccess: function(){ //https://semantic-ui.com/behaviors/form.html#/settings
 				//alert('success');
-				submitForm(event.target.innerText);
+				//submitForm(event.target.innerText); //firefox does not support event
+				submitForm();
 			},
 			onFailure:  function(){
-				console.log('onFailure',event.target.innerText, event.target.name );
+				//console.log('onFailure',event.target.innerText, event.target.name );
+				console.log('onFailure');
 			}			
 		  });
 		  
