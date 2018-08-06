@@ -1,0 +1,138 @@
+<div class="ui active dimmer">
+	<div class="ui indeterminate huge text loader">Starting ...</div>
+</div>
+
+
+<div class="">
+
+	<div class="ui ">
+		<div class="btnProc ui huge fluid buttons">
+		  <button class="ui  button">CP</button>
+		  <button class="ui  button">SMT</button>
+		  <button class="ui  button">THT</button>
+		  <button class="ui  button">ICT</button>
+		  <button class="ui  button">FT</button>
+		  <button class="ui  button">FA</button>  
+		</div>  
+	</div>	
+	<div class="ui centered grid segment">
+		<div class="equal height stretched row">
+
+			<div class="five wide column">
+				<div class="btnOver ui vertical buttons" >
+				  <button class="ui  button">Product quality problem;including CAR hold;process problems</button>
+				  <button class="ui  button">Material shortages</button>
+				  <button class="ui  button">Material quality problems</button>
+				  <button class="ui  button">Testing process problems</button>
+				  <button class="ui  button">Product repair problems</button>
+				  <button class="ui  button">FA production problems</button>  
+				  <button class="ui  button">Sample run problems</button>
+				  <button class="ui  button">PCBA production delayed</button>  	
+				  <button class="ui  button" value="other">Other problems not in above</button> 				  
+				</div>   
+			</div>
+		
+			<div class="six wide column">
+			
+				<div class="ui huge fluid input">
+					<input placeholder="Scaninput..." type="text" id="ScanInput">
+				</div>	
+				
+				<div class="ui large form segment"> 
+					<div class="two fields">
+						<div class="field">
+						  <label>Process</label>
+						  <input placeholder="Process" type="text" id="Proc" readonly>
+						</div>					
+						<div class="field">
+							<label>Order</label>
+							<input placeholder="Order" type="text" id="Order" readonly>
+						</div>						
+					</div>	
+					
+					<div class="field">
+					  <label>Status</label>
+					  <!-- <button class="circular ui icon toggle button" ><i class="icon frown outline"></i></button> -->
+					  <button class="ui fluid large toggle basic button" >PENDING</button>
+					  <input placeholder="Order" type="text" id="Status" value="PENDING" hidden>
+					</div>	
+					
+					<div class="field">
+					  <label>Overdue Reason</label>
+					  <input placeholder="Pleae input overdue reason" type="text" id="Overdue">
+					</div>	
+					
+					<div class="three fields" ng-show=1>
+						<div class="field">
+						  <label>Aloss</label>
+						  <input placeholder="Aloss" type="text" id="Aloss">
+						</div>	
+						<div class="field">
+						  <label>Repair</label>
+						  <input placeholder="Repair" type="text" id="Repair">
+						</div>	
+						<div class="field">
+						  <label>Scrap</label>
+						  <input placeholder="Scrap" type="text" id="Scrap">
+						</div>					
+					</div>
+									
+					<div class="field">
+						<div class="ui fluid large submit button" >Submit</div>
+					</div>
+
+				</div>	
+			</div>
+			
+			<div class="five wide column" >
+				<div class="ui mini statistic segment">
+					<div class="label">
+					  Order#
+					</div>			
+					<div class="value">
+					  {{dbResponse.Order}}
+					</div>
+						
+					<table class="ui compact table" ng-if="dbResponse!=null">
+						<thead>
+							<tr>
+							  <th>Process</th>
+							  <th>FinishDate</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="(k,v) in dbResponse | kwd:'FinishDate'">
+								<td>{{k.split('_')[0]}}</td>
+								<td>{{v | date:'yyyy-MM-dd HH:mm'}}</td>	
+							</tr>
+						</tbody>
+					</table>
+					
+					<table class="ui compact table" ng-if="dbResponse!=null">
+						<thead>
+							<tr>
+							  <th>Process</th>
+							  <th>Overdue Reason</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="(k,v) in dbResponse | kwd:'OverDue'">
+								<td>{{k.split('_')[0]}}</td>
+								<td>{{v}}</td>	
+							</tr>
+						</tbody>
+					</table>
+					
+				</div>
+			</div>    	
+		</div>
+	</div>
+
+	<div class="ui warning message" ng-if="showMsg">
+		<div class="header">Server Message</div>
+		<ul class="list">
+			<li> {{message}}</li>
+		</ul>
+	</div>
+
+</div>
